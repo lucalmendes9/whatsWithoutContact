@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
 import { View, Text, Button, Linking } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
+import { withNavigationFocus } from 'react-navigation';
 
-export default class Recents extends Component{
+
+class Recents extends Component{
 
     constructor(props) {
         super(props);
@@ -11,46 +13,58 @@ export default class Recents extends Component{
         }
     }
 
-    async getKey() {
-        try {
-          const value = await AsyncStorage.getItem('@MySuperStore:key');
-        //   this.setState({numbersList: value});
-          this.setState.numbersList.push(value);
-        } catch (error) {
-          console.log("Error retrieving data" + error);
-        }
-    }
+    async componentDidMount() {
+      try {
+        this.getStorage();
+      } catch (error) {
+          console.log("Error saving data" + error);
+      }
+  }
 
-    async resetKey() {
-        try {
-          await AsyncStorage.removeItem('@MySuperStore:key');
-          const value = await AsyncStorage.getItem('@MySuperStore:key');
-          this.setState({numbersList: value});
-        } catch (error) {
-          console.log("Error resetting data" + error);
-        }
+  componentDidUpdate(prevProps) {
+    if (this.props.isFocused && !prevProps.isFocused) {
+      this.getStorage();
     }
+  }
+
+  async getStorage(){
+    const valueStorage = await AsyncStorage.getItem('@MySuperStore:key');
+    if (valueStorage !== null) {
+      console.log( valueStorage );
+        await this.setState({
+            numbersList: [JSON.parse(valueStorage)]
+        })
+        console.log(this.state.numbersList);
+    }else{
+      console.log('async is null')
+    }
+  }
+
+  listNumbers(){
+    console.log('called');
+    if (this.state.numbersList !== null) {
+      this.state.numbersList.map( (data, key) => {
+        return( <Text key={key}>{data}</Text> )
+      })
+    }
+  }
+
+    
 
     render(){
 
-        this.getKey();
-
         return(
-            
             <View>
                 <Text>{`I'm Recentes Component`}</Text>
                 <Text onPress={ () => { 
                     Linking.openURL('http://api.whatsapp.com/send?phone=55' + this.state.numbersList); }}>
                 Stored key is = {this.state.numbersList}
                 </Text>
-                <Button
-                onPress={this.resetKey.bind(this)}
-                title="Reset"
-                color="#f44336"
-                accessibilityLabel="Reset"
-                />
+                {this.listNumbers()}
             </View>
         )
     }
     
 }
+
+export default withNavigationFocus(Recents);

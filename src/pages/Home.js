@@ -1,78 +1,92 @@
-import React, { Component  } from 'react';
+import React, { Component } from 'react';
 import { View, Text, Button, TextInput, Linking } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
+import { withNavigationFocus } from 'react-navigation';
 
-export default class Home extends Component{
+class Home extends Component{
 
     constructor(props) {
         super(props);
         this.state = {
-            numbersList: []
+            numbersList: null,
+            value: ''
         }
     }
 
-    async getKey() {
+    async componentDidMount() {
         try {
-          const value = await AsyncStorage.getItem('@MySuperStore:key');
-        //   this.setState({numbersList: value});
-        this.setState(state => {
-            const numbersList = state.numbersList.push(value);
-      
-            return {
-            numbersList,
-              value: '',
-            };
-          });
-          //Linking.openURL('http://api.whatsapp.com/send?phone=55' + value);
-        } catch (error) {
-          console.log("Error retrieving data" + error);
-        }
-    }
-    
-    async saveKey(value) {
-        try {
-            await AsyncStorage.setItem('@MySuperStore:key', value);
+            const valueStorage = await AsyncStorage.getItem('@MySuperStore:key');
+            if (valueStorage !== null) {
+                console.log( valueStorage );
+                await this.setState({
+                    numbersList: [JSON.parse(valueStorage)]
+                })
+                console.log(this.state.numbersList);
+            }else{
+                console.log('async is null')
+            }
         } catch (error) {
             console.log("Error saving data" + error);
         }
     }
 
+    async addItemArray() {
+        if(this.state.numbersList === null){
+            await this.setState({
+                numbersList: [this.state.value]
+            })
+        }else{
+            await this.setState({
+                numbersList: [...this.state.numbersList, this.state.value]
+            })
+        }
+        await AsyncStorage.setItem('@MySuperStore:key', JSON.stringify(this.state.numbersList));
+        console.log(this.state.numbersList);
+    }
 
+    async newNumber(value){
+        await this.setState({ value: value });
+        console.log(this.state.value);
+    }
+
+    // async clearItem(){
+    //     await AsyncStorage.removeItem('@MySuperStore:key');
+    //     const valueStorage = await AsyncStorage.getItem('@MySuperStore:key');
+    //     console.log( JSON.parse(valueStorage) );
+    // }
     
 
     render(){
 
-        const lapsList = this.state.numbersList.map((data) => {
-            return (
-              <Text>{data}</Text>
-            )
-          })
-
         return(
             <View>
-                {/* <Button onPress={ () => {this.global.cards.push('array');}} title="botaooo"/> */}
-                <Text>- aaaa</Text>
 
                 <TextInput
-                placeholder="Enter key you want to save!"
-                
-                onChangeText={(value) => this.saveKey(value)}
+                placeholder="Numero que deseja falar..."
+                onChangeText={(value) => this.newNumber(value)}
                 />
 
                 <Button
-                onPress={this.getKey.bind(this)}
-                title="Get Keyyy"
+                onPress={this.addItemArray.bind(this)}
+                title="Add novo numero"
                 color="#2196f3"
-                accessibilityLabel="Get Key"
+                accessibilityLabel="Add novo numero"
                 />
 
+                {/* <Button
+                onPress={this.clearItem.bind(this)}
+                title="clear"
+                color="#2196f3"
+                accessibilityLabel="clear"
+                /> */}
+  
                 <Text>
                 Stored key is = {this.state.numbersList}
                 </Text>
-                {lapsList}
             </View>
         )
     }
     
 }
 
+export default withNavigationFocus(Home);
