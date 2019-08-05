@@ -1,29 +1,31 @@
 import React, { Component } from 'react';
-import { View, Text, Button, Linking } from 'react-native';
+import { View, Text, Button, Linking, FlatList } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { withNavigationFocus } from 'react-navigation';
 
 
 class Recents extends Component{
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            numbersList: null
-        }
-    }
-
-    async componentDidMount() {
-      try {
-        this.getStorage();
-      } catch (error) {
-          console.log("Error saving data" + error);
+  constructor(props) {
+      super(props);
+      this.state = {
+          numbersList: null
       }
   }
 
-  componentDidUpdate(prevProps) {
+  async componentDidMount() {
+    try {
+      await this.getStorage();
+      // await this.listNumbers();
+    } catch (error) {
+        console.log("Error saving data" + error);
+    }
+  }
+
+  async componentDidUpdate(prevProps) {
     if (this.props.isFocused && !prevProps.isFocused) {
-      this.getStorage();
+      await this.getStorage();
+      // await this.listNumbers();
     }
   }
 
@@ -40,14 +42,18 @@ class Recents extends Component{
     }
   }
 
-  listNumbers(){
-    console.log('called');
-    if (this.state.numbersList !== null) {
-      this.state.numbersList.map( (data, key) => {
-        return( <Text key={key}>{data}</Text> )
-      })
-    }
-  }
+  // listNumbers(){
+  //   console.log('called');
+  //   if (this.state.numbersList !== null) {
+  //     this.state.numbersList.map( (key, data) => {
+  //       console.log(key);
+  //       return( <Text key={key}>{data}</Text> )
+  //     })
+  //   }else {
+  //     console.log('nao existem n recentes')
+  //     return( <Text>Não existem numeros recentes!</Text>)
+  //   }
+  // }
 
     
 
@@ -55,12 +61,19 @@ class Recents extends Component{
 
         return(
             <View>
-                <Text>{`I'm Recentes Component`}</Text>
+                <Text>I'm Recentes Component</Text>
                 <Text onPress={ () => { 
-                    Linking.openURL('http://api.whatsapp.com/send?phone=55' + this.state.numbersList); }}>
-                Stored key is = {this.state.numbersList}
+                    Linking.openURL('http://api.whatsapp.com/send?phone=55'); }}>
+                  Stored key is = 
                 </Text>
-                {this.listNumbers()}
+                <FlatList 
+                  data={this.state.numbersList}
+                  showsVerticalScrollIndicator={false}
+                  renderItem={({item}) => 
+                    <Text>{item.numeroMask}</Text>
+                  }
+                  keyExtractor={({item, index}) => item.numeroMask}
+                />
             </View>
         )
     }
