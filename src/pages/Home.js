@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
-import { View, Text, Button, TextInput, Linking } from 'react-native';
+import { View, Text, Button, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { withNavigationFocus } from 'react-navigation';
 import { TextInputMask } from 'react-native-masked-text';
+import Header from '../components/Header';
+import styled from 'styled-components/native';
 
 class Home extends Component{
 
@@ -51,8 +53,10 @@ class Home extends Component{
                     numbersList: [obj]
                 })
             }else{
+                const stringState = JSON.stringify(this.state.numbersList);
+                const clearString = stringState.replace('[','').replace(']','');
                 await this.setState({
-                    numbersList: [...this.state.numbersList, obj]
+                    numbersList: [JSON.parse(clearString), obj]
                 })
             }
             await AsyncStorage.setItem('@MySuperStore:key', JSON.stringify(this.state.numbersList));
@@ -87,38 +91,37 @@ class Home extends Component{
         return(
             <View>
 
-                <TextInputMask
-                    type={'cel-phone'}
-                    options={{ 
-                        validator: function(value, settings) {
-                            console.log('acertooooo')
-                        },
-                    }}
-                    value={this.state.value}
-                    placeholder="Numero que deseja falar..."
-                    onChangeText={(value) => this.newNumber(value)}
-                    ref={(ref) => this.phoneField = ref}
-                />
+                <Header title="WhatsWithoutContact" />
 
-                <Text>{this.state.errorText}</Text>
+                <Body>
+                    <TextInputMask
+                        style={styles.NumberInput}
+                        type={'cel-phone'}
+                        options={{ 
+                            validator: function(value, settings) {
+                                console.log('acertooooo')
+                            },
+                        }}
+                        value={this.state.value}
+                        placeholder="Numero que deseja falar..."
+                        onChangeText={(value) => this.newNumber(value)}
+                        ref={(ref) => this.phoneField = ref}
+                    />
 
-                <Button
-                    onPress={this.addItemArray.bind(this)}
-                    title="Add novo numero"
+                    <Error>{this.state.errorText}</Error>
+
+                    <BtnAdd onPress={this.addItemArray.bind(this)}>
+                        <TextAdd>Conversar</TextAdd>
+                    </BtnAdd>
+
+                    {/* <Button
+                    onPress={this.clearItem.bind(this)}
+                    title="clear"
                     color="#2196f3"
-                    accessibilityLabel="Add novo numero"
-                />
+                    accessibilityLabel="clear"
+                    /> */}
+                </Body>
 
-                {/* <Button
-                onPress={this.clearItem.bind(this)}
-                title="clear"
-                color="#2196f3"
-                accessibilityLabel="clear"
-                /> */}
-
-                <Text>
-                    Stored key is = 
-                </Text>
             </View>
         )
     }
@@ -126,3 +129,33 @@ class Home extends Component{
 }
 
 export default withNavigationFocus(Home);
+
+const Body = styled.View`
+    height: 100%;
+    background-color: #ece5dd;
+    padding: 50px 15px;
+`
+const BtnAdd = styled.TouchableOpacity`
+    background-color: #34b7f1;
+    padding: 20px 0px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+`
+const TextAdd = styled.Text`
+    color: #FFF;
+    font-size: 18px;
+`
+const Error = styled.Text`
+    color: #666
+`
+
+const styles = StyleSheet.create({
+    NumberInput: {
+        borderColor: '#000',
+        borderStyle: 'solid',
+        borderWidth: 1,
+        borderRadius: 4,
+        padding: 5,
+    }
+})
